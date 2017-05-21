@@ -1,0 +1,84 @@
+# Reproducible Research - Peer Assignment 1, Week 2
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r loadlibrary}
+library(Hmisc)
+library(ggplot2)
+library(scales)
+```
+
+## Loading and preprocessing the data
+
+```{r 1}
+## Load data
+data <- read.csv("activity.csv")
+summary(data)
+```
+
+## What is mean total number of steps taken per day?
+
+```{r 2, results='asis'}
+stepsbyday <- tapply(data$steps, data$date, sum, na.rm = T)
+
+## Histogram depicting total number of steps taken each day
+qplot(stepsbyday, xlab='Total steps per day', ylab='Frequency using binwith 400', binwidth=400)
+```
+
+## What is the average daily activity pattern?
+
+```{r 3, results='asis'}
+avgstepstimeblock <- aggregate(x=list(meanSteps = data$steps), by=list(interval=data$interval), FUN=mean, na.rm=TRUE)
+
+## Time series plot
+ggplot(data=avgstepstimeblock, aes(x=interval, y=meanSteps)) +
+    geom_line() +
+    xlab("5-minute interval") +
+    ylab("Average # steps taken")
+
+## Which 5-minute interval, on average across all the days in the dataset, contains the maximum number of steps
+mostSteps <- which.max(avgstepstimeblock$meanSteps)
+timeMostSteps <- gsub("([0-9]{1,2})([0-9]{2})", "\\1:\\2", avgstepstimeblock[mostSteps,'interval'])
+timeMostSteps
+```
+
+## Imputing missing values
+
+```{r 4, results='asis'}
+## Find the number of missing values in the data
+missing <- length(which(is.na(data$steps)))
+missing
+
+## Impute the missing values
+imputed.data <- data
+imputed.data$steps <- impute(data$steps, fun = median)
+
+## Calculate the mean and median of the steps taken per day in the imputed data
+stepsbydayimputedMean <- mean(imputed.data$steps)
+stepsbydayimputedMean
+
+stepsbydayimputedMedian <- median(imputed.data$steps)
+stepsbydayimputedMedian
+```
+
+```{r 5, results='asis'}
+## Calculate the steps taken per day
+stepsbydayImputed <- tapply(imputed.data$steps, imputed.data$date, sum)
+
+## A histogram depicting the total number of steps taken in a day
+qplot(stepsbydayImputed, xlab = 'Total steps per day (Imputed)', ylab='Frequency using binwith 400', binwidth=400)
+```
+
+## Are there differences in activity patterns between weekdays and weekends?
+```{r 6, results='asis'}
+imputed.data$dateType <- ifelse(as.POSIXlt(imputed.data$date)$wday %in% c(0,6), 'weekend', 'weekday')
+
+avgActivity <- aggregate(steps ~ interval + dateType, data=imputed.data, mean)
+ggplot(avgActivity, aes(interval, steps)) + 
+    geom_line() + 
+    facet_grid(dateType ~ .) +
+    xlab("5-minute interval") + 
+    ylab("Average number of steps")
+```
