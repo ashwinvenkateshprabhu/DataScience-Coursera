@@ -41,6 +41,18 @@ qplot(stepsbyday, xlab='Total steps per day', ylab='Frequency using binwith 400'
 
 ![plot of chunk 2](figure/2-1.png)
 
+```r
+mean(stepsbyday, na.rm = T)
+```
+
+[1] 9354.23
+
+```r
+median(stepsbyday, na.rm = T)
+```
+
+[1] 10395
+
 ## What is the average daily activity pattern?
 
 
@@ -79,21 +91,8 @@ missing
 ```r
 ## Impute the missing values
 imputed.data <- data
-imputed.data$steps <- impute(data$steps, fun = median)
-
-## Calculate the mean and median of the steps taken per day in the imputed data
-stepsbydayimputedMean <- mean(imputed.data$steps)
-stepsbydayimputedMean
+imputed.data$steps <- impute(data$steps, fun = mean)
 ```
-
-[1] 32.47996
-
-```r
-stepsbydayimputedMedian <- median(imputed.data$steps)
-stepsbydayimputedMedian
-```
-
-[1] 0
 
 
 ```r
@@ -105,6 +104,20 @@ qplot(stepsbydayImputed, xlab = 'Total steps per day (Imputed)', ylab='Frequency
 ```
 
 ![plot of chunk 5](figure/5-1.png)
+
+```r
+## Calculate the mean and median of the steps taken per day in the imputed data
+stepsbydayImputed <- tapply(imputed.data$steps, imputed.data$date, FUN = sum)
+mean(stepsbydayImputed)
+```
+
+[1] 10766.19
+
+```r
+median(stepsbydayImputed)
+```
+
+[1] 10766.19
 
 ## Are there differences in activity patterns between weekdays and weekends?
 
