@@ -1,0 +1,135 @@
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=8, fig.height=4)
+options(width=100)
+```
+
+# Moter Trend - The relationship between a set of variables and miles per gallon
+By Ashwin Venkatesh Prabhu
+
+## Executive Summary
+
+We work for Motor Trend, a magazine about the automobile industry. Looking at a data set of a collection of cars, we are interested in exploring the relationship between a set of variables and miles per gallon (MPG) (outcome).
+
+- “Is an automatic or manual transmission better for MPG”
+- "Quantify the MPG difference between automatic and manual transmissions"
+
+We will start with the following steps:
+
+- Process the data
+- Conduct exploratory data analysis, focusing on the two paramaters we are interested in (Transmission and MPG)
+- Model selection, where we try different models to help us answer our questions
+- Model examination, to see wether our best model holds up to our standards
+- A Conclusion where we answer the questions based on the data
+
+## Processing
+
+Change 'am' to a factor (1 = manual, 0 = automatic). Make cylinders a factor.
+```{r}
+library(ggplot2)
+library(GGally)
+library(dplyr)
+library(ggfortify)
+
+data(mtcars)
+
+df <- mtcars
+df$am <- as.factor(df$am)
+levels(df$am) <- c("automatic", "manual")
+
+df$cyl <- as.factor(df$cyl)
+df$gear <- as.factor(df$gear)
+df$vs <- as.factor(df$vs)
+levels(df$vs) <- c("V", "S")
+```
+
+## Exploratory data analysis
+
+Look at the dimensions & head of the dataset to get an idea
+```{r}
+# Result 1
+dim(df)
+
+# Result 2
+head(df)
+```
+
+Let's take a look at the realtionship between the two parameters which we are intereseted in.
+```{r}
+plot1 <- ggplot(df, aes(am, mpg))
+plot1 + geom_boxplot(aes(fill = am))
+```
+
+The above plot shows clearly that the manual transmissions have higher mpg's there could be a bias in the dataset that we are overlooking. 
+Before creating a model we should look at which paramters to include besides 'am'. 
+So we look at all correlations of parameters and take only those higher then the 'am' correlation.
+
+```{r}
+# Result 3
+cors <- cor(mtcars$mpg, mtcars)
+orderedCors <- cors[,order(-abs(cors[1,]))]
+orderedCors
+
+# Result 4
+amPos <- which(names(orderedCors)=="am")
+subsetColumns <- names(orderedCors)[1:amPos]
+subsetColumns
+
+df[,subsetColumns] %>% 
+   ggpairs(
+     mapping = ggplot2::aes(color = am), 
+     upper = list(continuous = wrap("cor", size = 3)),
+     lower = list(continuous = wrap("smooth", alpha=0.4, size=1), combo = wrap("dot"))
+   )
+```
+
+## Model selection 
+
+We have seen that mpg has many other (stronger) correlations than just 'am' we can guess that a model predicting the mpg solely on this parameter will not be the most accurate model. Let's check this out.
+
+First we start with the basic model
+```{r}
+# Result 5
+fit1 <- lm(mpg ~ am, df)
+summary(fit1)
+```
+
+The p-values are actually quite low, the R-squared is problematic however. Now go to the other side of the spectrum by fitting all parameters of mtcars.
+
+```{r}
+# Result 6
+fit2 <- lm(mpg ~ ., df)
+summary(fit2)
+```
+
+The R-squared has improved, but the p-values hardly show any significance anymore. Perhaps this is due to overfitting. We now have to meet somewhere in the middle. Let's iterate using the step method.
+
+```{r}
+# Result 7
+fit <- step(fit2, direction="both",trace=FALSE)
+summary(fit)
+```
+
+## Model examination
+
+The resulting best model `mpg ~ wt + qsec + am` is actually dependant on the transmission (am), but also weight (wt) and 1/4 mile time (qsec). All have significant p-values. The R-squared is pretty good to (0.85)
+
+Now let's look (amongst others) at the Residuals vs Fitted 
+
+```{r}
+autoplot(fit)
+```
+
+The 'Normal Q-Q' plot looks ok, but the 'Residuals vs Fitted' and 'Scale-Location' both show worrysome trends.
+
+## Conclusion
+
+The question “Is an automatic or manual transmission better for MPG” can be answered because all models (#Result 5, #Result 6 and #Result 7) show that, holding all other paramters constant, manual transmission will increase your MPG.
+
+The question “Quantify the MPG difference between automatic and manual transmissions” is harder to answer.
+
+Based on the 'fit' (#Result 7) model `mpg ~ wt + qsec + am` we could conclude that (with a p < 0.05 confidence) cars with manual transmission have 2.9358 (say 3) more miles per gallon than automatic transmissions.
+The model seems clean with a p < 0.05 and R squared of 0.85
+
+The residuals vs fitted chart however warns us that there is something missing in our model. The real problem I think is that we only have 32 observations to train on (#Res1) and that observations hardly have overlap on the parameters 'wt' and 'qsec' (amongst others) if we look at the diagonal in the matrix chart
+
+Although the conclusion of ca. 3 mpg better performance on manual transmissions seems feasible, I cannot with confidence conclude that this model will fit all future observations.
