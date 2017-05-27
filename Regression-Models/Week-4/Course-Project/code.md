@@ -1,6 +1,6 @@
 
 
-# Moter Trend - The relationship between a set of variables and miles per gallon
+# Motor Trend - The relationship between a set of variables and miles per gallon
 By Ashwin Venkatesh Prabhu
 
 ## Executive Summary

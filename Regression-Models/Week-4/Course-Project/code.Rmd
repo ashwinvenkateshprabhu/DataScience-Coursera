@@ -3,7 +3,7 @@ knitr::opts_chunk$set(echo = TRUE, warning=FALSE, message=FALSE, fig.width=8, fi
 options(width=100)
 ```
 
-# Moter Trend - The relationship between a set of variables and miles per gallon
+# Motor Trend - The relationship between a set of variables and miles per gallon
 By Ashwin Venkatesh Prabhu
 
 ## Executive Summary
