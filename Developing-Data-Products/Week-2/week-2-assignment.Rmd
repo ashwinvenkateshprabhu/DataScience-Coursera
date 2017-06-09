@@ -1,0 +1,21 @@
+# Developing Data Products: Week 2 Assignment
+Ashwin Venkatesh Prabhu
+
+June 7, 2017
+
+## Some tourist destinations in India
+
+```{r}
+library(leaflet)
+
+m <- leaflet() %>%
+  addTiles() %>%
+  addMarkers(lat=18.9220, lng=72.8347, popup="Gateway of India, Mumbai") %>%
+  addMarkers(lat=27.1750, lng=78.0422, popup="Taj Mahal, Agra") %>%
+  addMarkers(lat=28.5244, lng=77.1855, popup="Qutub Minar, Delhi") %>%
+  addMarkers(lat=28.6144, lng=77.1996, popup="Rashtrapathi Bhavan, Delhi") %>%
+  addMarkers(lat=13.0500, lng=80.2824, popup="Marina Beach, Chennai") %>%
+  addMarkers(lat=11.7989, lng=75.4404, popup="Muzhapilangad Beach, Thalassery") %>%
+  setView (lat=11.7989, lng=75.4404, zoom=12)
+m
+```
